@@ -4,13 +4,13 @@ public class Cohort {
     private final int cohortId;
     private final int cohortSize;
     private final int typeId;
-    private final int moduleIds[];
+    private final int courseIds[];
 
-    public Cohort(int cohortId, int cohortSize, int typeId, int moduleIds[]) {
+    public Cohort(int cohortId, int cohortSize, int typeId, int courseIds[]) {
         this.cohortId = cohortId;
         this.cohortSize = cohortSize;
         this.typeId = typeId;
-        this.moduleIds = moduleIds;
+        this.courseIds = courseIds;
     }
 
     public int getCohortId() {
@@ -25,7 +25,7 @@ public class Cohort {
         return this.typeId;
     }
 
-    public int[] getModuleIds() {
-        return this.moduleIds;
+    public int[] getCourseIds() {
+        return this.courseIds;
     }
 }

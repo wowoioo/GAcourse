@@ -24,13 +24,13 @@ public class Individual {
 	}
 
 	public Individual(Timetable timetable) {
-		int numClasses = timetable.getNumClasses();
-		int chromosomeLength = numClasses * 5;
+		int plansNum = timetable.getPlansNum();
+		int chromosomeLength = plansNum * 5;
 		int newChromosome[] = new int[chromosomeLength];
 		int chromosomeIndex = 0;
 
 		for (Cohort group : timetable.getCohortsAsArray()) {
-			for (int moduleId : group.getModuleIds()){
+			for (int courseId : group.getCourseIds()){
 
 				int timeslotId = timetable.getRandomTimeslot().getTimeslotId();
 				newChromosome[chromosomeIndex] = timeslotId;
@@ -40,28 +40,28 @@ public class Individual {
 				newChromosome[chromosomeIndex] = roomId;
 				chromosomeIndex++;
 
-				Module module = timetable.getModule(moduleId);
-				int professorNum = module.getProfessorNum();
-				int[] professorIds = module.getProfessorIds();
-				
+				Course course = timetable.getCourse(courseId);
+				int professorNum = course.getProfessorNum();
+				int[] professorIds = course.getProfessorIds();
+
 				professorNum = Math.min(professorNum, professorIds.length);
-				
+
 				List<Integer> professorList = new ArrayList<>();
 				for (int id : professorIds) {
-				    professorList.add(id);
+					professorList.add(id);
 				}
-				
+
 				Collections.shuffle(professorList);
-				
+
 				for (int i = 0; i < 3; i++) {
-				    if (i < professorNum) {
-				        newChromosome[chromosomeIndex] = professorList.get(i); // 填充教授ID
-				    } else {
-				        newChromosome[chromosomeIndex] = -1;
-				    }
-				    chromosomeIndex++;
+					if (i < professorNum) {
+						newChromosome[chromosomeIndex] = professorList.get(i);
+					} else {
+						newChromosome[chromosomeIndex] = -1;
+					}
+					chromosomeIndex++;
 				}
-//				newChromosome[chromosomeIndex] = module.getRandomProfessorId();
+//				newChromosome[chromosomeIndex] = course.getRandomProfessorId();
 //				chromosomeIndex++;
 			}
 		}

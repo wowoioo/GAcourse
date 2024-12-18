@@ -49,12 +49,12 @@ public class TimatableGA {
 		timetable.addProfessor(8, "Lecturer8");
 		timetable.addProfessor(9, "Lecturer9");
 
-		timetable.addModule(1, "PA2", "CC2", "Course1", new int[]{1, 2, 3, 4, 5}, "S1", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addModule(2, "PA2", "CC3", "Course2", new int[]{1, 3, 4, 5, 7, 8, 9}, "S2", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addModule(3, "PA2", "CC4", "Course3", new int[]{1, 2, 6, 8, 9}, "-", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addModule(4, "PA2", "CC5", "Course4", new int[]{3, 4, 5, 6}, "-", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addModule(5, "PA2", "CC6", "Course5", new int[]{1, 2, 3}, "-", "Lecturer1", "Grad Cert 1", 2);
-		timetable.addModule(6, "PA2", "CC7", "Course6", new int[]{1, 4, 7, 8}, "S3", "Lecturer1", "Grad Cert 1", 1);
+		timetable.addCourse(1, "PA2", "CC2", "Course1", new int[]{1, 2, 3, 4, 5}, "S1", "Lecturer1", "Grad Cert 1", 1);
+		timetable.addCourse(2, "PA2", "CC3", "Course2", new int[]{1, 3, 4, 5, 7, 8, 9}, "S2", "Lecturer1", "Grad Cert 1", 2);
+		timetable.addCourse(3, "PA2", "CC4", "Course3", new int[]{1, 2, 6, 8, 9}, "-", "Lecturer1", "Grad Cert 1", 1);
+		timetable.addCourse(4, "PA2", "CC5", "Course4", new int[]{3, 4, 5, 6}, "-", "Lecturer1", "Grad Cert 1", 1);
+		timetable.addCourse(5, "PA2", "CC6", "Course5", new int[]{1, 2, 3}, "-", "Lecturer1", "Grad Cert 1", 1);
+		timetable.addCourse(6, "PA2", "CC7", "Course6", new int[]{1, 4, 7, 8}, "S3", "Lecturer1", "Grad Cert 1", 2);
 
 		timetable.addCohort(1, 10, 1, new int[]{1, 3, 4});
 		timetable.addCohort(2, 30, 2, new int[]{2, 3, 5, 6});
@@ -75,48 +75,57 @@ public class TimatableGA {
 		GA ga = new GA(100, 0.001, 0.98, 2, 5);
 
 		Population population = ga.initPopulation(timetable);
-		
+
 		int generation = 1;
 
 		while(ga.isTerminationConditionMet1(population) == false && ga.isTerminationconditionMet2(generation, maxGenerations) == false) {
 			System.out.println("G" + generation + "Best fitness:" + population.getFittest(0).getFitness());
+
+			//交叉
 			population = ga.crossoverPopulation(population);
+
+			//变异
 			population = ga.mutatePopulation(population, timetable);
+
 			ga.evalPopulation(population, timetable);
+
 			generation++;
 		}
 
-		timetable.createClasses(population.getFittest(0));
+		timetable.createPlans(population.getFittest(0));
 		System.out.println();
 		System.out.println("Solution found in " + generation + " generations");
 		System.out.println("Final solution fitness: " + population.getFittest(0).getFitness());
 		System.out.println("Clashes: " + timetable.calcClashes());
 
 		System.out.println();
-		Class classes[] = timetable.getClasses();
+		TeachingPlan plans[] = timetable.getPlans();
 
-		int classIndex = 1;
-		for (Class bestClass : classes) {
-			System.out.println("Class " + classIndex + ":");
-			System.out.println("Module: " + timetable.getModule(bestClass.getModuleId()).getModuleName());
-			System.out.println("Cohort: " + timetable.getCohort(bestClass.getCohortId()).getCohortId());
-			System.out.println("Room: " + timetable.getRoom(bestClass.getRoomId( )).getRoomNumber( ));
-			if (timetable.getModule(bestClass.getModuleId()).getProfessorNum() == 1) {
-				System.out.println("Professor1: " + timetable.getProfessor(bestClass.getProfessor1Id()).getProfessorName());
+		int planIndex = 1;
+		for (TeachingPlan bestplan : plans) {
+			System.out.println("plan " + planIndex + ":");
+			System.out.println("Course: " + timetable.getCourse(bestplan.getCourseId()).getCourseName());
+			System.out.println("Software: " + timetable.getCourse(bestplan.getCourseId()).getSoftware());
+			System.out.println("Cohort: " + timetable.getCohort(bestplan.getCohortId()).getCohortId());
+			System.out.println("Room: " + timetable.getRoom(bestplan.getRoomId( )).getRoomNumber( ));
+			if (timetable.getCourse(bestplan.getCourseId()).getProfessorNum() == 1) {
+				System.out.println("Professor1: " + timetable.getProfessor(bestplan.getProfessor1Id()).getProfessorName());
 				System.out.println("Professor2: - ");
 				System.out.println("Professor3: - ");
-			} else if (timetable.getModule(bestClass.getModuleId()).getProfessorNum() == 2) {
-				System.out.println("Professor1: " + timetable.getProfessor(bestClass.getProfessor1Id()).getProfessorName());
-				System.out.println("Professor2: " + timetable.getProfessor(bestClass.getProfessor2Id()).getProfessorName());
+			} else if (timetable.getCourse(bestplan.getCourseId()).getProfessorNum() == 2) {
+				System.out.println("Professor1: " + timetable.getProfessor(bestplan.getProfessor1Id()).getProfessorName());
+				System.out.println("Professor2: " + timetable.getProfessor(bestplan.getProfessor2Id()).getProfessorName());
 				System.out.println("Professor3: - ");
-			} else if (timetable.getModule(bestClass.getModuleId()).getProfessorNum() == 3) {
-				System.out.println("Professor1: " + timetable.getProfessor(bestClass.getProfessor1Id()).getProfessorName());
-				System.out.println("Professor2: " + timetable.getProfessor(bestClass.getProfessor2Id()).getProfessorName());
-				System.out.println("Professor3: " + timetable.getProfessor(bestClass.getProfessor3Id()).getProfessorName());
+			} else if (timetable.getCourse(bestplan.getCourseId()).getProfessorNum() == 3) {
+				System.out.println("Professor1: " + timetable.getProfessor(bestplan.getProfessor1Id()).getProfessorName());
+				System.out.println("Professor2: " + timetable.getProfessor(bestplan.getProfessor2Id()).getProfessorName());
+				System.out.println("Professor3: " + timetable.getProfessor(bestplan.getProfessor3Id()).getProfessorName());
 			}
-			System.out.println("Time: " + timetable.getTimeslot(bestClass.getTimeslotId()).getTimeslot());
+			System.out.println("Time: " + timetable.getTimeslot(bestplan.getTimeslotId()).getTimeslot());
+			System.out.println("Course Manager: " + timetable.getCourse(bestplan.getCourseId()).getCourseManager());
+			System.out.println("Grad Cert: " + timetable.getCourse(bestplan.getCourseId()).getGradCert());
 			System.out.println("-----");
-			classIndex++;
+			planIndex++;
 		}
 	}
 }

@@ -15,7 +15,7 @@ public class GA {
 
 	public double calcFitness(Individual individual, Timetable timetable) {
 		Timetable threadTimetable = new Timetable(timetable);
-		threadTimetable.createClasses(individual);
+		threadTimetable.createPlans(individual);
 
 		int clashes = threadTimetable.calcClashes();
 		double fitness = 1 / (double)(clashes + 1);
@@ -73,12 +73,12 @@ public class GA {
 //		}
 //		return newPopulation;
 //	}
-	
+
 	public Population crossoverPopulation(Population population) {
 		Population newPopulation = new Population(population.size());
 
 		for (int populationIndex = 0; populationIndex <population.size(); populationIndex++){
-		Individual parent1 = population.getFittest(populationIndex);
+			Individual parent1 = population.getFittest(populationIndex);
 
 			if (this.crossoverRate > Math.random() && populationIndex >= this.elitismCount) {
 
@@ -110,9 +110,9 @@ public class GA {
 		Population newPopulation = new Population(this.populationSize);
 		for(int populationIndex = 0; populationIndex < population.size(); populationIndex++) {
 			Individual individual = population.getFittest(populationIndex);
-			
+
 			Individual randomIndividual = new Individual(timetable);
-			
+
 			for(int geneIndex = 0; geneIndex < individual.getChromosomeLength(); geneIndex++) {
 				if (populationIndex > this.elitismCount) {
 					if(this.mutationRate > Math.random()) {
@@ -124,7 +124,7 @@ public class GA {
 		}
 		return newPopulation;
 	}
-	
+
 	public GA(int populationSize, double mutationRate, double crossoverRate,int elitismCount, int tournamentSize) {
 		this.populationSize = populationSize;
 		this.mutationRate = mutationRate;

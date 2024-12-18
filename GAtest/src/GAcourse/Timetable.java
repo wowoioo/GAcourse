@@ -5,17 +5,17 @@ import java.util.HashMap;
 public class Timetable {
     private final HashMap<Integer, Room> rooms;
     private final HashMap<Integer, Professor> professors;
-    private final HashMap<Integer, Module> modules;
+    private final HashMap<Integer, Course> courses;
     private final HashMap<Integer, Cohort> cohorts;
     private final HashMap<Integer, Timeslot> timeslots;
-    private Class classes[];
+    private TeachingPlan plans[];
 
-    private int numClasses = 0;
+    private int plansNum = 0;
 
     public Timetable() {
         this.rooms = new HashMap<Integer, Room>();
         this.professors = new HashMap<Integer, Professor>();
-        this.modules = new HashMap<Integer, Module>();
+        this.courses = new HashMap<Integer, Course>();
         this.cohorts = new HashMap<Integer, Cohort>();
         this.timeslots = new HashMap<Integer, Timeslot>();
     }
@@ -23,7 +23,7 @@ public class Timetable {
     public Timetable(Timetable cloneable) {
         this.rooms = cloneable.getRooms();
         this.professors = cloneable.getProfessors();
-        this.modules = cloneable.getModules();
+        this.courses = cloneable.getCourses();
         this.cohorts = cloneable.getCohorts();
         this.timeslots = cloneable.getTimeslots();
     }
@@ -32,8 +32,8 @@ public class Timetable {
         return this.professors;
     }
 
-    private HashMap<Integer, Module> getModules() {
-        return this.modules;
+    private HashMap<Integer, Course> getCourses() {
+        return this.courses;
     }
 
     private HashMap<Integer, Cohort> getCohorts() {
@@ -52,47 +52,47 @@ public class Timetable {
         this.professors.put(professorId, new Professor(professorId, professorName));
     }
 
-    public void addModule(int moduleId, String practiceArea, String moduleCode, String module, int professorIds[], String software, String courseManager, String gradCert, int professorNum) {
-        this.modules.put(moduleId, new Module(moduleId, practiceArea, moduleCode, module, professorIds, software, courseManager, gradCert, professorNum));
+    public void addCourse(int courseId, String practiceArea, String courseCode, String course, int professorIds[], String software, String courseManager, String gradCert, int professorNum) {
+        this.courses.put(courseId, new Course(courseId, practiceArea, courseCode, course, professorIds, software, courseManager, gradCert, professorNum));
     }
 
-    public void addCohort(int cohortId, int cohortSize,int typeId, int moduleIds[]) {
-        this.cohorts.put(cohortId, new Cohort(cohortId, cohortSize, typeId, moduleIds));
-        this.numClasses = 0;
+    public void addCohort(int cohortId, int cohortSize,int typeId, int courseIds[]) {
+        this.cohorts.put(cohortId, new Cohort(cohortId, cohortSize, typeId, courseIds));
+        this.plansNum = 0;
     }
 
     public void addTimeslot(int timeslotId, String timeslot) {
         this.timeslots.put(timeslotId, new Timeslot(timeslotId, timeslot));
     }
 
-    public void createClasses(Individual individual) {
-        Class classes[] = new Class[this.getNumClasses()];
+    public void createPlans(Individual individual) {
+        TeachingPlan plans[] = new TeachingPlan[this.getPlansNum()];
 
         int chromosome[] = individual.getChromosome();
         int chromosomePos = 0;
-        int classIndex = 0;
+        int planIndex = 0;
 
         for (Cohort cohort : this.getCohortsAsArray()) {
-            int moduleIds[] = cohort.getModuleIds();
-            for (int moduleId : moduleIds) {
-                classes[classIndex] = new Class(classIndex, cohort.getCohortId(), moduleId);
-                classes[classIndex].addTimeslot(chromosome[chromosomePos]);
+            int courseIds[] = cohort.getCourseIds();
+            for (int courseId : courseIds) {
+                plans[planIndex] = new TeachingPlan(planIndex, cohort.getCohortId(), courseId);
+                plans[planIndex].addTimeslot(chromosome[chromosomePos]);
                 chromosomePos++;
 
-                classes[classIndex].setRoomId(chromosome[chromosomePos]);
+                plans[planIndex].setRoomId(chromosome[chromosomePos]);
                 chromosomePos++;
-                
-                classes[classIndex].addProfessor1(chromosome[chromosomePos]);
-            	chromosomePos++;
-            	classes[classIndex].addProfessor2(chromosome[chromosomePos]);
-            	chromosomePos++;
-            	classes[classIndex].addProfessor3(chromosome[chromosomePos]);
-            	chromosomePos++;
-                
-                classIndex++;
+
+                int professor1 = chromosome[chromosomePos++];
+                int professor2 = chromosome[chromosomePos++];
+                int professor3 = chromosome[chromosomePos++];
+
+                plans[planIndex].addProfessor1(professor1);
+                plans[planIndex].addProfessor2(professor2);
+                plans[planIndex].addProfessor3(professor3);
+                planIndex++;
             }
         }
-        this.classes = classes;
+        this.plans = plans;
     }
 
     public Room getRoom(int roomId) {
@@ -107,22 +107,22 @@ public class Timetable {
     }
 
     public Room getRandomRoom() {
-    Object[] roomsArray = this.rooms.values().toArray( );
-    Room room = (Room) roomsArray[(int) (roomsArray.length * Math.random())];
-    return room;
+        Object[] roomsArray = this.rooms.values().toArray( );
+        Room room = (Room) roomsArray[(int) (roomsArray.length * Math.random())];
+        return room;
     }
 
     public Professor getProfessor(int professorId) {
         return (Professor) this.professors.get(professorId);
     }
 
-    public Module getModule(int moduleId) {
-        return (Module) this.modules.get(moduleId);
+    public Course getCourse(int courseId) {
+        return (Course) this.courses.get(courseId);
     }
 
-    public int[] getCohortModules(int cohortId) {
+    public int[] getCohortCourses(int cohortId) {
         Cohort cohort = (Cohort) this.cohorts.get(cohortId);
-        return cohort.getModuleIds();
+        return cohort.getCourseIds();
     }
 
     public Cohort getCohort(int cohortId) {
@@ -143,189 +143,189 @@ public class Timetable {
         return timeslot;
     }
 
-    public Class[] getClasses() {
-        return this.classes;
+    public TeachingPlan[] getPlans() {
+        return this.plans;
     }
 
-    public int getNumClasses() {
-        if (this.numClasses > 0){
-            return this.numClasses;
+    public int getPlansNum() {
+        if (this.plansNum > 0){
+            return this.plansNum;
         }
 
-        int numClasses = 0;
+        int plansNum = 0;
         Cohort cohorts[] = (Cohort[]) this.cohorts.values().toArray(new Cohort[this.cohorts.size()]);
 
         for (Cohort cohort : cohorts) {
-            numClasses += cohort.getModuleIds().length;
+            plansNum += cohort.getCourseIds().length;
         }
-        this.numClasses = numClasses;
+        this.plansNum = plansNum;
 
-        return this.numClasses;
+        return this.plansNum;
     }
 
     public int calcClashes() {
         int clashes = 0;
-        for (Class classA : this.classes) {
-            int roomCapacity = this.getRoom(classA.getRoomId()).getRoomCapacity();
-            int cohortSize = this.getCohort(classA.getCohortId()).getCohortSize();
+        for (TeachingPlan planA : this.plans) {
+            int roomCapacity = this.getRoom(planA.getRoomId()).getRoomCapacity();
+            int cohortSize = this.getCohort(planA.getCohortId()).getCohortSize();
             if (roomCapacity < cohortSize) {
                 clashes++;
             }
 
-            for (Class classB : this.classes) {
-                if (classA.getRoomId() == classB.getRoomId() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+            for (TeachingPlan planB : this.plans) {
+                if (planA.getRoomId() == planB.getRoomId() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                     clashes++;
                     break;
                 }
             }
-            if (this.getModule(classA.getModuleId()).getProfessorNum() == 1) {
-                for (Class classB : this.classes) {
-                    if (this.getModule(classB.getModuleId()).getProfessorNum() == 1) {
-                        if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+            if (this.getCourse(planA.getCourseId()).getProfessorNum() == 1) {
+                for (TeachingPlan planB : this.plans) {
+                    if (this.getCourse(planB.getCourseId()).getProfessorNum() == 1) {
+                        if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                             clashes++;
                             break;
                         }
-                    } else if (this.getModule(classB.getModuleId()).getProfessorNum() == 2) {
-                        if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                    } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 2) {
+                        if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                             clashes++;
                             break;
-                        } else if (classA.getProfessor1Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                            clashes++;
-                            break;
-                        }
-                    } else if (this.getModule(classB.getModuleId()).getProfessorNum() == 3) {
-                        if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                            clashes++;
-                            break;
-                        } else if (classA.getProfessor1Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                            clashes++;
-                            break;
-                        } else if (classA.getProfessor1Id() == classB.getProfessor3Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                        } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                             clashes++;
                             break;
                         }
-                    }
-                }
-            } else if (this.getModule(classA.getModuleId()).getProfessorNum() == 2) {
-                if (classA.getProfessor1Id() == classA.getProfessor2Id()) {
-                    clashes++;
-                    break;
-                } else {
-                    for (Class classB : this.classes) {
-                        if (this.getModule(classB.getModuleId()).getProfessorNum() == 1) {
-                            if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            }
-                        } else if (this.getModule(classB.getModuleId()).getProfessorNum() == 2) {
-                            if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor1Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            }
-                        } else if (this.getModule(classB.getModuleId()).getProfessorNum() == 3) {
-                            if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor1Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor1Id() == classB.getProfessor3Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor3Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            }
+                    } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 3) {
+                        if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                            clashes++;
+                            break;
+                        } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                            clashes++;
+                            break;
+                        } else if (planA.getProfessor1Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                            clashes++;
+                            break;
                         }
                     }
                 }
-            } else if (this.getModule(classA.getModuleId()).getProfessorNum() == 3) {
-                if (classA.getProfessor1Id() == classA.getProfessor2Id()) {
-                    clashes++;
-                    break;
-                } else if (classA.getProfessor1Id() == classA.getProfessor3Id()) {
-                    clashes++;
-                    break;
-                } else if (classA.getProfessor2Id() == classA.getProfessor3Id()) {
+            } else if (this.getCourse(planA.getCourseId()).getProfessorNum() == 2) {
+                if (planA.getProfessor1Id() == planA.getProfessor2Id()) {
                     clashes++;
                     break;
                 } else {
-                    for (Class classB : this.classes) {
-                        if (this.getModule(classB.getModuleId()).getProfessorNum() == 1) {
-                            if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                    for (TeachingPlan planB : this.plans) {
+                        if (this.getCourse(planB.getCourseId()).getProfessorNum() == 1) {
+                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor3Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
                             }
-                        } else if (this.getModule(classB.getModuleId()).getProfessorNum() == 2) {
-                            if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 2) {
+                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor3Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor1Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
-                                clashes++;
-                                break;
-                            } else if (classA.getProfessor3Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
                             }
-                        } else if (this.getModule(classB.getModuleId()).getProfessorNum() == 3) {
-                            if (classA.getProfessor1Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 3) {
+                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor3Id() == classB.getProfessor1Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor1Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor1Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor3Id() == classB.getProfessor2Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor2Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor1Id() == classB.getProfessor3Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            }
+                        }
+                    }
+                }
+            } else if (this.getCourse(planA.getCourseId()).getProfessorNum() == 3) {
+                if (planA.getProfessor1Id() == planA.getProfessor2Id()) {
+                    clashes++;
+                    break;
+                } else if (planA.getProfessor1Id() == planA.getProfessor3Id()) {
+                    clashes++;
+                    break;
+                } else if (planA.getProfessor2Id() == planA.getProfessor3Id()) {
+                    clashes++;
+                    break;
+                } else {
+                    for (TeachingPlan planB : this.plans) {
+                        if (this.getCourse(planB.getCourseId()).getProfessorNum() == 1) {
+                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor2Id() == classB.getProfessor3Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
-                            } else if (classA.getProfessor3Id() == classB.getProfessor3Id() && classA.getTimeslotId() == classB.getTimeslotId() && classA.getClassId() != classB.getClassId()) {
+                            } else if (planA.getProfessor3Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            }
+                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 2) {
+                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor3Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor3Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            }
+                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 3) {
+                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor3Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor3Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor1Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor2Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
+                                clashes++;
+                                break;
+                            } else if (planA.getProfessor3Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
                                 clashes++;
                                 break;
                             }
