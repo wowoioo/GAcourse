@@ -1,6 +1,9 @@
 package GAcourse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Timetable {
     private final HashMap<Integer, Room> rooms;
@@ -20,6 +23,7 @@ public class Timetable {
         this.timeslots = new HashMap<Integer, Timeslot>();
     }
 
+    //浅拷贝，用于适应度计算
     public Timetable(Timetable cloneable) {
         this.rooms = cloneable.getRooms();
         this.professors = cloneable.getProfessors();
@@ -52,12 +56,12 @@ public class Timetable {
         this.professors.put(professorId, new Professor(professorId, professorName));
     }
 
-    public void addCourse(int courseId, String practiceArea, String courseCode, String course, int professorIds[], String software, String courseManager, String gradCert, int professorNum) {
-        this.courses.put(courseId, new Course(courseId, practiceArea, courseCode, course, professorIds, software, courseManager, gradCert, professorNum));
+    public void addCourse(int courseId, String practiceArea, String courseCode, String course, int professorIds[], String software, String courseManager, String gradCert, int professorNum, int duration, String run) {
+        this.courses.put(courseId, new Course(courseId, practiceArea, courseCode, course, professorIds, software, courseManager, gradCert, professorNum, duration, run));
     }
 
-    public void addCohort(int cohortId, int cohortSize,int typeId, int courseIds[]) {
-        this.cohorts.put(cohortId, new Cohort(cohortId, cohortSize, typeId, courseIds));
+    public void addCohort(int cohortId, int cohortSize,int typeId, String cohortType, int courseIds[]) {
+        this.cohorts.put(cohortId, new Cohort(cohortId, cohortSize, typeId, cohortType, courseIds));
         this.plansNum = 0;
     }
 
@@ -165,175 +169,64 @@ public class Timetable {
 
     public int calcClashes() {
         int clashes = 0;
-        for (TeachingPlan planA : this.plans) {
-            int roomCapacity = this.getRoom(planA.getRoomId()).getRoomCapacity();
-            int cohortSize = this.getCohort(planA.getCohortId()).getCohortSize();
+
+        //根据roomId和timeslotId分组
+        Map<Integer, List<TeachingPlan>> roomTimeslotMap = new HashMap<>();
+        for (TeachingPlan plan : this.plans) {
+            int key = plan.getRoomId() * 1000 + plan.getTimeslotId(); // 简单的键生成方式
+            roomTimeslotMap.computeIfAbsent(key, k -> new ArrayList<>()).add(plan);
+        }
+
+        //容量
+        for (TeachingPlan plan : this.plans) {
+            int roomCapacity = this.getRoom(plan.getRoomId()).getRoomCapacity();
+            int cohortSize = this.getCohort(plan.getCohortId()).getCohortSize();
             if (roomCapacity < cohortSize) {
                 clashes++;
             }
+        }
 
-            for (TeachingPlan planB : this.plans) {
-                if (planA.getRoomId() == planB.getRoomId() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                    clashes++;
-                    break;
-                }
-            }
-            if (this.getCourse(planA.getCourseId()).getProfessorNum() == 1) {
-                for (TeachingPlan planB : this.plans) {
-                    if (this.getCourse(planB.getCourseId()).getProfessorNum() == 1) {
-                        if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                            clashes++;
-                            break;
-                        }
-                    } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 2) {
-                        if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                            clashes++;
-                            break;
-                        } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                            clashes++;
-                            break;
-                        }
-                    } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 3) {
-                        if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                            clashes++;
-                            break;
-                        } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                            clashes++;
-                            break;
-                        } else if (planA.getProfessor1Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                            clashes++;
-                            break;
-                        }
-                    }
-                }
-            } else if (this.getCourse(planA.getCourseId()).getProfessorNum() == 2) {
-                if (planA.getProfessor1Id() == planA.getProfessor2Id()) {
-                    clashes++;
-                    break;
-                } else {
-                    for (TeachingPlan planB : this.plans) {
-                        if (this.getCourse(planB.getCourseId()).getProfessorNum() == 1) {
-                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            }
-                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 2) {
-                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            }
-                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 3) {
-                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor1Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            }
-                        }
-                    }
-                }
-            } else if (this.getCourse(planA.getCourseId()).getProfessorNum() == 3) {
-                if (planA.getProfessor1Id() == planA.getProfessor2Id()) {
-                    clashes++;
-                    break;
-                } else if (planA.getProfessor1Id() == planA.getProfessor3Id()) {
-                    clashes++;
-                    break;
-                } else if (planA.getProfessor2Id() == planA.getProfessor3Id()) {
-                    clashes++;
-                    break;
-                } else {
-                    for (TeachingPlan planB : this.plans) {
-                        if (this.getCourse(planB.getCourseId()).getProfessorNum() == 1) {
-                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor3Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            }
-                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 2) {
-                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor3Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor3Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            }
-                        } else if (this.getCourse(planB.getCourseId()).getProfessorNum() == 3) {
-                            if (planA.getProfessor1Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor3Id() == planB.getProfessor1Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor1Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor3Id() == planB.getProfessor2Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor1Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor2Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            } else if (planA.getProfessor3Id() == planB.getProfessor3Id() && planA.getTimeslotId() == planB.getTimeslotId() && planA.getPlanId() != planB.getPlanId()) {
-                                clashes++;
-                                break;
-                            }
-                        }
+        //检查时间段和房间的冲突
+        for (List<TeachingPlan> group : roomTimeslotMap.values()) {
+            for (int i = 0; i < group.size(); i++) {
+                TeachingPlan planA = group.get(i);
+                for (int j = i + 1; j < group.size(); j++) {
+                    TeachingPlan planB = group.get(j);
+                    if (planA.getPlanId() != planB.getPlanId()) {
+                        clashes++;
                     }
                 }
             }
         }
+
+        //统计教授冲突
+        Map<Integer, List<TeachingPlan>> professorTimeslotMap = new HashMap<>();
+        for (TeachingPlan plan : this.plans) {
+            int professorNum = this.getCourse(plan.getCourseId()).getProfessorNum();
+            int timeslotId = plan.getTimeslotId();
+
+            if (professorNum >= 1) {
+                int key1 = plan.getProfessor1Id() * 1000 + timeslotId;
+                professorTimeslotMap.computeIfAbsent(key1, k -> new ArrayList<>()).add(plan);
+            }
+            if (professorNum >= 2) {
+                int key2 = plan.getProfessor2Id() * 1000 + timeslotId;
+                professorTimeslotMap.computeIfAbsent(key2, k -> new ArrayList<>()).add(plan);
+            }
+            if (professorNum == 3) {
+                int key3 = plan.getProfessor3Id() * 1000 + timeslotId;
+                professorTimeslotMap.computeIfAbsent(key3, k -> new ArrayList<>()).add(plan);
+            }
+        }
+
+        //检查教授时间段冲突
+        for (List<TeachingPlan> group : professorTimeslotMap.values()) {
+            if (group.size() > 1) {
+                clashes += group.size() - 1;
+            }
+        }
+
         return clashes;
     }
+
 }

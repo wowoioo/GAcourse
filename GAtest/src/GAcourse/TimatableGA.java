@@ -49,23 +49,23 @@ public class TimatableGA {
 		timetable.addProfessor(8, "Lecturer8");
 		timetable.addProfessor(9, "Lecturer9");
 
-		timetable.addCourse(1, "PA2", "CC2", "Course1", new int[]{1, 2, 3, 4, 5}, "S1", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addCourse(2, "PA2", "CC3", "Course2", new int[]{1, 3, 4, 5, 7, 8, 9}, "S2", "Lecturer1", "Grad Cert 1", 2);
-		timetable.addCourse(3, "PA2", "CC4", "Course3", new int[]{1, 2, 6, 8, 9}, "-", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addCourse(4, "PA2", "CC5", "Course4", new int[]{3, 4, 5, 6}, "-", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addCourse(5, "PA2", "CC6", "Course5", new int[]{1, 2, 3}, "-", "Lecturer1", "Grad Cert 1", 1);
-		timetable.addCourse(6, "PA2", "CC7", "Course6", new int[]{1, 4, 7, 8}, "S3", "Lecturer1", "Grad Cert 1", 2);
+		timetable.addCourse(1, "PA2", "CC2", "Course1", new int[]{1, 2, 3, 4, 5}, "S1", "Lecturer1", "Grad Cert 1", 1, 1, "-");
+		timetable.addCourse(2, "PA2", "CC3", "Course2", new int[]{1, 3, 4, 5, 7, 8, 9}, "S2", "Lecturer1", "Grad Cert 1", 3, 1, "-");
+		timetable.addCourse(3, "PA2", "CC4", "Course3", new int[]{1, 2, 6, 8, 9}, "-", "Lecturer1", "Grad Cert 1", 1, 1, "-");
+		timetable.addCourse(4, "PA2", "CC5", "Course4", new int[]{3, 4, 5, 6}, "-", "Lecturer1", "Grad Cert 1", 2, 1, "-");
+		timetable.addCourse(5, "PA2", "CC6", "Course5", new int[]{1, 2, 3}, "-", "Lecturer1", "Grad Cert 1", 1, 1, "-");
+		timetable.addCourse(6, "PA2", "CC7", "Course6", new int[]{1, 4, 7, 8}, "S3", "Lecturer1", "Grad Cert 1", 2, 1, "-");
 
-		timetable.addCohort(1, 10, 1, new int[]{1, 3, 4});
-		timetable.addCohort(2, 30, 2, new int[]{2, 3, 5, 6});
-		timetable.addCohort(3, 18, 2, new int[]{3, 4, 5});
-		timetable.addCohort(4, 25, 3, new int[]{1, 4});
-		timetable.addCohort(5, 20, 4, new int[]{2, 3, 5});
-		timetable.addCohort(6, 22, 5, new int[]{1, 4, 5});
-		timetable.addCohort(7, 16, 5, new int[]{1, 3});
-		timetable.addCohort(8, 18, 6, new int[]{2, 6});
-		timetable.addCohort(9, 24, 7, new int[]{1, 6});
-		timetable.addCohort(10, 25, 8, new int[]{3, 4});
+		timetable.addCohort(1, 10, 1, "1", new int[]{1, 3, 4});
+		timetable.addCohort(2, 30, 2, "1", new int[]{2, 3, 5, 6});
+		timetable.addCohort(3, 18, 2, "1", new int[]{3, 4, 5});
+		timetable.addCohort(4, 25, 3, "1", new int[]{1, 4});
+		timetable.addCohort(5, 20, 4, "1", new int[]{2, 3, 5});
+		timetable.addCohort(6, 22, 5, "1", new int[]{1, 4, 5});
+		timetable.addCohort(7, 16, 5, "1", new int[]{1, 3});
+		timetable.addCohort(8, 18, 6, "1", new int[]{2, 6});
+		timetable.addCohort(9, 24, 7, "1", new int[]{1, 6});
+		timetable.addCohort(10, 25, 8, "1", new int[]{3, 4});
 
 		return timetable;
 	}

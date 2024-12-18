@@ -1,5 +1,7 @@
 package GAcourse;
 
+import java.util.Random;
+
 public class GA {
 	private int populationSize;
 	private double mutationRate;
@@ -44,13 +46,18 @@ public class GA {
 	//锦标赛选父母
 	public Individual selectParent(Population population) {
 		Population tournament = new Population(this.tournamentSize);
-		population.shuffle();
-		for(int i = 0; i < this.tournamentSize; i++) {
-			Individual tournamentIndividual = population.getIndividual(i);
+		Random random = new Random();
+
+		// 随机选择 tournamentSize 个个体放入锦标赛种群
+		for (int i = 0; i < this.tournamentSize; i++) {
+			int randomIndex = random.nextInt(population.size());
+			Individual tournamentIndividual = population.getIndividual(randomIndex);
 			tournament.setIndividual(i, tournamentIndividual);
 		}
-		return  tournament.getFittest(0);
+
+		return tournament.getFittest(0);
 	}
+
 //	//均匀交叉
 //	public Population crossoverPopulation(Population population) {
 //		Population newPopulation = new Population(population.size());

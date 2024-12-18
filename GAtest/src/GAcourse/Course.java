@@ -10,9 +10,10 @@ public class Course {
     private final String courseManager;
     private final String gradCert;
     private final int professorNum;
-//    private int duration;
+    private int duration;
+    private String run;
 
-    public Course(int courseId, String practiceArea, String courseCode, String course, int professorIds[], String software, String courseManager, String gradCert, int professorNum) {
+    public Course(int courseId, String practiceArea, String courseCode, String course, int professorIds[], String software, String courseManager, String gradCert, int professorNum, int duration, String run) {
         this.courseId = courseId;
         this.practiceArea = practiceArea;
         this.courseCode = courseCode;
@@ -22,6 +23,8 @@ public class Course {
         this.courseManager = courseManager;
         this.gradCert = gradCert;
         this.professorNum = professorNum;
+        this.duration = duration;
+        this.run = run;
     }
 
     public int getCourseId() {
