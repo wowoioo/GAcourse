@@ -59,6 +59,10 @@ public class Course {
         return professorNum;
     }
 
+    public int getDuration() {
+        return this.duration;
+    }
+
     public int[] getProfessorIds() {
         return this.professorIds;
     }

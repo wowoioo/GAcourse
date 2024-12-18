@@ -26,6 +26,12 @@ public class Individual {
 	public Individual(Timetable timetable) {
 		int plansNum = timetable.getPlansNum();
 		int chromosomeLength = plansNum * 5;
+
+		for (Course course : timetable.getCourses().values()) {
+			int duration = course.getDuration();
+			chromosomeLength += (duration - 1) * 5;
+		}
+
 		int newChromosome[] = new int[chromosomeLength];
 		int chromosomeIndex = 0;
 
@@ -92,6 +98,7 @@ public class Individual {
 		return this.fitness;
 	}
 
+	@Override
 	public String toString() {
 		String output = "";
 		for(int gene = 0; gene < this.chromosome.length; gene++) {

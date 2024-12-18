@@ -29,19 +29,19 @@ public class Timetable {
         this.timeslots = cloneable.getTimeslots();
     }
 
-    private HashMap<Integer, Professor> getProfessors() {
+    public HashMap<Integer, Professor> getProfessors() {
         return this.professors;
     }
 
-    private HashMap<Integer, Course> getCourses() {
+    public HashMap<Integer, Course> getCourses() {
         return this.courses;
     }
 
-    private HashMap<Integer, Cohort> getCohorts() {
+    public HashMap<Integer, Cohort> getCohorts() {
         return this.cohorts;
     }
 
-    private HashMap<Integer, Timeslot> getTimeslots() {
+    public HashMap<Integer, Timeslot> getTimeslots() {
         return this.timeslots;
     }
 
@@ -67,7 +67,16 @@ public class Timetable {
     }
 
     public void createPlans(Individual individual) {
-        TeachingPlan plans[] = new TeachingPlan[this.getPlansNum()];
+        int totalPlans = 0;
+        for (Cohort cohort : this.getCohortsAsArray()) {
+            int courseIds[] = cohort.getCourseIds();
+            for (int courseId : courseIds) {
+                Course course = this.getCourse(courseId);
+                totalPlans += course.getDuration();  // 还没有加run#，后面也要加在这
+            }
+        }
+        TeachingPlan plans[] = new TeachingPlan[totalPlans];
+
 
         int chromosome[] = individual.getChromosome();
         int chromosomePos = 0;
@@ -76,24 +85,78 @@ public class Timetable {
         for (Cohort cohort : this.getCohortsAsArray()) {
             int courseIds[] = cohort.getCourseIds();
             for (int courseId : courseIds) {
-                plans[planIndex] = new TeachingPlan(planIndex, cohort.getCohortId(), courseId);
-                plans[planIndex].addTimeslot(chromosome[chromosomePos]);
-                chromosomePos++;
+                Course course = this.getCourse(courseId);
+                int duration = course.getDuration(); // 获取课程持续时间
 
-                plans[planIndex].setRoomId(chromosome[chromosomePos]);
-                chromosomePos++;
+                for (int dayOffset = 0; dayOffset < duration; dayOffset++) {
+                    plans[planIndex] = new TeachingPlan(planIndex, cohort.getCohortId(), courseId);
 
-                int professor1 = chromosome[chromosomePos++];
-                int professor2 = chromosome[chromosomePos++];
-                int professor3 = chromosome[chromosomePos++];
 
-                plans[planIndex].addProfessor1(professor1);
-                plans[planIndex].addProfessor2(professor2);
-                plans[planIndex].addProfessor3(professor3);
-                planIndex++;
+                    int timeslotId = chromosome[chromosomePos] + dayOffset;
+                    if (timeslotId > this.getMaxTimeslotId()) {
+                        timeslotId = chromosome[chromosomePos];
+                    }
+                    plans[planIndex].addTimeslot(timeslotId);
+
+                    // 对于持续时间内的计划，保持教室一致
+                    if (dayOffset == 0) {
+                        plans[planIndex].setRoomId(chromosome[chromosomePos + 1]); // 仅在第一个时间段设置教室
+                    } else {
+                        plans[planIndex].setRoomId(plans[planIndex - 1].getRoomId()); // 延续上一个计划的教室
+                    }
+
+                    // 对于持续时间内的计划，保持教授一致
+                    if (dayOffset == 0) {
+                        plans[planIndex].addProfessor1(chromosome[chromosomePos + 2]);
+                        plans[planIndex].addProfessor2(chromosome[chromosomePos + 3]);
+                        plans[planIndex].addProfessor3(chromosome[chromosomePos + 4]);
+                    } else {
+                        plans[planIndex].addProfessor1(plans[planIndex - 1].getProfessor1Id());
+                        plans[planIndex].addProfessor2(plans[planIndex - 1].getProfessor2Id());
+                        plans[planIndex].addProfessor3(plans[planIndex - 1].getProfessor3Id());
+                    }
+
+                    planIndex++;
+                }
+                chromosomePos += 5; // 每个课程占用 5 个基因
             }
         }
         this.plans = plans;
+//        TeachingPlan plans[] = new TeachingPlan[this.getPlansNum()];
+//
+//        int chromosome[] = individual.getChromosome();
+//        int chromosomePos = 0;
+//        int planIndex = 0;
+//
+//        for (Cohort cohort : this.getCohortsAsArray()) {
+//            int courseIds[] = cohort.getCourseIds();
+//            for (int courseId : courseIds) {
+//                plans[planIndex] = new TeachingPlan(planIndex, cohort.getCohortId(), courseId);
+//                plans[planIndex].addTimeslot(chromosome[chromosomePos]);
+//                chromosomePos++;
+//
+//                plans[planIndex].setRoomId(chromosome[chromosomePos]);
+//                chromosomePos++;
+//
+//                int professor1 = chromosome[chromosomePos++];
+//                int professor2 = chromosome[chromosomePos++];
+//                int professor3 = chromosome[chromosomePos++];
+//
+//                plans[planIndex].addProfessor1(professor1);
+//                plans[planIndex].addProfessor2(professor2);
+//                plans[planIndex].addProfessor3(professor3);
+//                planIndex++;
+//            }
+//        }
+//        this.plans = plans;
+    }
+
+    public int getMaxTimeslotId() {
+        Set<Integer> timeslotIds = this.timeslots.keySet();
+        if (timeslotIds.isEmpty()) {
+            return -1;
+        }
+        return Collections.max(timeslotIds);
     }
 
     public Room getRoom(int roomId) {
@@ -241,7 +304,7 @@ public class Timetable {
             int roomCapacity = this.getRoom(plan.getRoomId()).getRoomCapacity();
             int cohortSize = this.getCohort(plan.getCohortId()).getCohortSize();
             if (roomCapacity < cohortSize) {
-                penalty += 1000;
+                penalty += 100;//惩罚值
             }
         }
 
@@ -252,7 +315,7 @@ public class Timetable {
                 for (int j = i + 1; j < group.size(); j++) {
                     TeachingPlan planB = group.get(j);
                     if (planA.getPlanId() != planB.getPlanId()) {
-                        penalty += 1000;
+                        penalty += 100;//惩罚值
                     }
                 }
             }
@@ -281,7 +344,7 @@ public class Timetable {
         // 检查教授时间段冲突
         for (List<TeachingPlan> group : professorTimeslotMap.values()) {
             if (group.size() > 1) {
-                penalty += (group.size() - 1) * 1000; // 增加冲突的惩罚值
+                penalty += (group.size() - 1) * 100; // 增加冲突的惩罚值
             }
         }
 
@@ -299,13 +362,13 @@ public class Timetable {
                 TeachingPlan nextPlan = plans.get(i + 1);
                 int timeslotDiff = nextPlan.getTimeslotId() - currentPlan.getTimeslotId();//暂时只这样设置
                 if (timeslotDiff > 1) {
-                    penalty += 10; // 时间段不相邻
+                    penalty += 1; // 时间段不相邻
                 }
                 if (currentPlan.getRoomId() != nextPlan.getRoomId()) {
-                    penalty += 50; // 教室不同，增加小的惩罚值
+                    penalty += 5; // 教室不同，增加小的惩罚值
                 }
                 if (!getValidProfessorIds(currentPlan).equals(getValidProfessorIds(nextPlan))) {
-                    penalty += 50; // 教授不同，增加小的惩罚值
+                    penalty += 5; // 教授不同，增加小的惩罚值
                 }
             }
         }
