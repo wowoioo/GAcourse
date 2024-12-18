@@ -1,5 +1,7 @@
 package GAcourse;
 
+import java.util.List;
+
 public class TimatableGA {
 	public static  int maxGenerations = 1000;
 
@@ -93,39 +95,45 @@ public class TimatableGA {
 		}
 
 		timetable.createPlans(population.getFittest(0));
-		System.out.println();
-		System.out.println("Solution found in " + generation + " generations");
-		System.out.println("Final solution fitness: " + population.getFittest(0).getFitness());
-		System.out.println("Clashes: " + timetable.calcClashes());
+//		System.out.println();
+//		System.out.println("Solution found in " + generation + " generations");
+//		System.out.println("Final solution fitness: " + population.getFittest(0).getFitness());
+//		System.out.println("Clashes: " + timetable.calcClashes());
+//
+//		System.out.println();
+//		TeachingPlan plans[] = timetable.getPlans();
+//
+//		int planIndex = 1;
+//		for (TeachingPlan bestplan : plans) {
+//			System.out.println("plan " + planIndex + ":");
+//			System.out.println("Course: " + timetable.getCourse(bestplan.getCourseId()).getCourseName());
+//			System.out.println("Software: " + timetable.getCourse(bestplan.getCourseId()).getSoftware());
+//			System.out.println("Cohort: " + timetable.getCohort(bestplan.getCohortId()).getCohortId());
+//			System.out.println("Room: " + timetable.getRoom(bestplan.getRoomId( )).getRoomNumber( ));
+//
+//			int professorNum = timetable.getCourse(bestplan.getCourseId()).getProfessorNum();
+//			String[] professors = new String[3];
+//			professors[0] = timetable.getProfessor(bestplan.getProfessor1Id()).getProfessorName();
+//			professors[1] = professorNum > 1 ? timetable.getProfessor(bestplan.getProfessor2Id()).getProfessorName() : "-";
+//			professors[2] = professorNum > 2 ? timetable.getProfessor(bestplan.getProfessor3Id()).getProfessorName() : "-";
+//
+//			for (int i = 0; i < professors.length; i++) {
+//				System.out.println("Professor" + (i + 1) + ": " + professors[i]);
+//			}
+//
+//			System.out.println("Time: " + timetable.getTimeslot(bestplan.getTimeslotId()).getTimeslot());
+//			System.out.println("Course Manager: " + timetable.getCourse(bestplan.getCourseId()).getCourseManager());
+//			System.out.println("Grad Cert: " + timetable.getCourse(bestplan.getCourseId()).getGradCert());
+//			System.out.println("-----");
+//			planIndex++;
+//		}
 
-		System.out.println();
-		TeachingPlan plans[] = timetable.getPlans();
+		TimetableOutput timetableOutput = new TimetableOutput();
+		List<TimetableOutput.InputData> timetableList = timetableOutput.generateTimetableList(timetable, population, generation);
 
-		int planIndex = 1;
-		for (TeachingPlan bestplan : plans) {
-			System.out.println("plan " + planIndex + ":");
-			System.out.println("Course: " + timetable.getCourse(bestplan.getCourseId()).getCourseName());
-			System.out.println("Software: " + timetable.getCourse(bestplan.getCourseId()).getSoftware());
-			System.out.println("Cohort: " + timetable.getCohort(bestplan.getCohortId()).getCohortId());
-			System.out.println("Room: " + timetable.getRoom(bestplan.getRoomId( )).getRoomNumber( ));
-			if (timetable.getCourse(bestplan.getCourseId()).getProfessorNum() == 1) {
-				System.out.println("Professor1: " + timetable.getProfessor(bestplan.getProfessor1Id()).getProfessorName());
-				System.out.println("Professor2: - ");
-				System.out.println("Professor3: - ");
-			} else if (timetable.getCourse(bestplan.getCourseId()).getProfessorNum() == 2) {
-				System.out.println("Professor1: " + timetable.getProfessor(bestplan.getProfessor1Id()).getProfessorName());
-				System.out.println("Professor2: " + timetable.getProfessor(bestplan.getProfessor2Id()).getProfessorName());
-				System.out.println("Professor3: - ");
-			} else if (timetable.getCourse(bestplan.getCourseId()).getProfessorNum() == 3) {
-				System.out.println("Professor1: " + timetable.getProfessor(bestplan.getProfessor1Id()).getProfessorName());
-				System.out.println("Professor2: " + timetable.getProfessor(bestplan.getProfessor2Id()).getProfessorName());
-				System.out.println("Professor3: " + timetable.getProfessor(bestplan.getProfessor3Id()).getProfessorName());
-			}
-			System.out.println("Time: " + timetable.getTimeslot(bestplan.getTimeslotId()).getTimeslot());
-			System.out.println("Course Manager: " + timetable.getCourse(bestplan.getCourseId()).getCourseManager());
-			System.out.println("Grad Cert: " + timetable.getCourse(bestplan.getCourseId()).getGradCert());
-			System.out.println("-----");
-			planIndex++;
+// 输出列表
+		for (TimetableOutput.InputData data : timetableList) {
+			System.out.println(data);
 		}
 	}
 }
