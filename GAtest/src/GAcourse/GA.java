@@ -19,8 +19,9 @@ public class GA {
 		Timetable threadTimetable = new Timetable(timetable);
 		threadTimetable.createPlans(individual);
 
-		int clashes = threadTimetable.calcClashes();
-		double fitness = 1 / (double)(clashes + 1);
+		double penalty = threadTimetable.calcPenalty();
+
+		double fitness = 1 / (penalty + 1);
 		individual.setFitness(fitness);
 
 		return fitness;

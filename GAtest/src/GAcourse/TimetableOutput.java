@@ -50,6 +50,7 @@ public class TimetableOutput {
         List<InputData> inputDataList = new ArrayList<>();
         TeachingPlan[] plans = timetable.getPlans();
 
+        //输出字段进List
         for (TeachingPlan bestplan : plans) {
             String courseName = timetable.getCourse(bestplan.getCourseId()).getCourseName();
             String software = timetable.getCourse(bestplan.getCourseId()).getSoftware();

@@ -10,8 +10,8 @@ public class Course {
     private final String courseManager;
     private final String gradCert;
     private final int professorNum;
-    private int duration;
-    private String run;
+    private final int duration;
+    private final String run;
 
     public Course(int courseId, String practiceArea, String courseCode, String course, int professorIds[], String software, String courseManager, String gradCert, int professorNum, int duration, String run) {
         this.courseId = courseId;
